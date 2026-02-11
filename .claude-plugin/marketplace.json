@@ -17,6 +17,26 @@
       "name": "context-fork",
       "description": "Fork the current session to Haiku, Sonnet, or Opus with full conversation context preserved",
       "source": "plugins/context-fork"
+    },
+    {
+      "name": "second-opinion",
+      "description": "Get second opinions from external AIs (Codex, Gemini, Claude) on programming questions with parallel execution and synthesis",
+      "source": "plugins/second-opinion"
+    },
+    {
+      "name": "skill-creator",
+      "description": "Guide for creating effective Claude Code skills with SKILL.md templates, validation scripts, and best practices",
+      "source": "plugins/skill-creator"
+    },
+    {
+      "name": "agent-development",
+      "description": "Comprehensive guide for creating Claude Code subagents with frontmatter, permissions, storage, and hooks",
+      "source": "plugins/agent-development"
+    },
+    {
+      "name": "hook-development",
+      "description": "Comprehensive guide for creating Claude Code hooks with command, prompt, and agent hook types",
+      "source": "plugins/hook-development"
     }
   ]
 }

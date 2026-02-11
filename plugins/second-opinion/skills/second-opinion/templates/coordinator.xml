@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Coordinator Sub-Agent Template for /second-opinion
+
+  Placeholders:
+  - {{AI_SPEC}} — The AI specification (e.g., :all, codex, gemini, claude, or empty for default)
+  - {{PROMPT_FILE_PATH}} — Full path to the XML prompt file from /complete-prompt
+
+  See coordinator-prompt.md for documentation.
+-->
+<coordinator-prompt>
+
+<role>
+You are a coordinator agent. Execute the following AI calls and return raw responses.
+</role>
+
+<config>
+  <ai-spec>{{AI_SPEC}}</ai-spec>
+  <prompt-file>{{PROMPT_FILE_PATH}}</prompt-file>
+</config>
+
+<ai-registry>
+<source>{{CALL_AI_DIR}}/ai-registry.yaml</source>
+<instructions>Read the YAML file for current model names. Do not assume model names — always read the file first.</instructions>
+</ai-registry>
+
+<parsing-rules>
+<rule ai-spec="default" action="Codex + Gemini thorough" responses="2"/>
+<rule ai-spec=":all" action="All 3 AIs × both variants" responses="6"/>
+<rule ai-spec="codex" action="Codex thorough only" responses="1"/>
+<rule ai-spec="gemini" action="Gemini thorough only" responses="1"/>
+<rule ai-spec="claude" action="Claude thorough only" responses="1"/>
+</parsing-rules>
+
+<execution>
+  <instructions>
+    1. Read ai-registry.yaml to get current model names.
+    2. Based on AI_SPEC, determine which ai/model pairs to call.
+    3. Run a single bash command using run-parallel.sh:
+
+       {{CALL_AI_DIR}}/scripts/run-parallel.sh "{{PROMPT_FILE_PATH}}" {ai1} {model1} [{ai2} {model2} ...]
+
+       This launches all AIs in parallel (each in its own Zellij pane when available).
+    4. Parse the delimited output blocks (=== RESULT / === END) and format with standard headers.
+  </instructions>
+
+  <examples>
+    <example spec="default">run-parallel.sh prompt.xml codex gpt-5.3-codex gemini gemini-3-pro-preview</example>
+    <example spec=":all">run-parallel.sh prompt.xml codex gpt-5.3-codex codex gpt-5.2-codex gemini gemini-3-pro-preview gemini gemini-3-flash-preview claude sonnet claude haiku</example>
+    <example spec="codex">run-parallel.sh prompt.xml codex gpt-5.3-codex</example>
+  </examples>
+</execution>
+
+<error-handling>
+  <policy>Retries are handled internally by the AI scripts. If a result block shows failure, report it as-is — do not retry.</policy>
+</error-handling>
+
+<output-format>
+  <description>Return raw responses with clear headers. Use model names from ai-registry.yaml.</description>
+  <success-template><![CDATA[
+## {AI_NAME} ({model_name}) ##
+────────────────────────────────────────
+{raw_response}
+────────────────────────────────────────
+]]></success-template>
+  <failure-template><![CDATA[
+## {AI_NAME} ({model_name}) ##
+────────────────────────────────────────
+⚠️ FAILED after {retry_count} retries: {error_message}
+────────────────────────────────────────
+]]></failure-template>
+  <important>Do NOT synthesize or merge responses. Return them raw for the main agent to synthesize.</important>
+</output-format>
+
+</coordinator-prompt>
